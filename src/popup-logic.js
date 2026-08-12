@@ -12,6 +12,14 @@ export function isDirectPdfTabUrl(value) {
   }
 }
 
+export function isFetchablePdfCandidate(value) {
+  try {
+    return ['http:', 'https:', 'file:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
+}
+
 export function assertFileSchemeAccessAllowed(pdfUrl, allowed) {
   const url = new URL(pdfUrl);
   if (url.protocol === 'file:' && !allowed) {

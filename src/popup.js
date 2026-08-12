@@ -3,7 +3,7 @@ import {
   assertFileSchemeAccessAllowed,
   choosePdfUrl,
   getOptionalOriginPattern,
-  isDirectPdfTabUrl,
+  isFetchablePdfCandidate,
   needsOptionalHostPermission
 } from './popup-logic.js';
 
@@ -44,11 +44,11 @@ async function detectCurrentPdf() {
   }
 
   pdfUrl = choosePdfUrl(tab.url, detected);
-  if (!detected && !isDirectPdfTabUrl(pdfUrl)) {
+  if (!detected && !isFetchablePdfCandidate(pdfUrl)) {
     throw new Error('このページからPDFを見つけられませんでした。PDFを開いた状態で試してください。');
   }
 
-  source.textContent = shortUrl(pdfUrl);
+  source.textContent = detected ? shortUrl(pdfUrl) : `${shortUrl(pdfUrl)}（未確認）`;
   button.disabled = false;
   showStatus('右→左の2in1に変換します。');
 }
