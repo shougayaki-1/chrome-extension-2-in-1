@@ -1,0 +1,6 @@
+.worktrees/
+node_modules/
+chromium-extension.log
+extension/
+vendor/pdf-lib.min.js
+vendor/pdf-lib.min.js.tmp

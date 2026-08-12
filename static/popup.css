@@ -1,0 +1,14 @@
+:root { color-scheme: light; font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif; }
+body { margin: 0; background: #fff; color: #1f1f1f; }
+main { width: 292px; padding: 18px; box-sizing: border-box; }
+h1 { margin: 0 0 14px; font-size: 18px; }
+.preview { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #c9c9c9; border-radius: 8px; overflow: hidden; height: 72px; }
+.preview div { display: grid; place-items: center; font-size: 24px; font-weight: 700; background: #f7f7f7; }
+.preview div + div { border-left: 1px solid #c9c9c9; }
+.direction { margin: 8px 0 14px; text-align: center; font-size: 13px; font-weight: 600; }
+.source { margin: 0 0 10px; font-size: 11px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button { width: 100%; min-height: 42px; border: 0; border-radius: 8px; background: #1a73e8; color: white; font-size: 14px; font-weight: 700; cursor: pointer; }
+button:disabled { opacity: .55; cursor: default; }
+.status { min-height: 34px; margin: 10px 0 0; font-size: 12px; line-height: 1.45; color: #666; }
+.status[data-kind="error"] { color: #b3261e; }
+.status[data-kind="success"] { color: #137333; }
