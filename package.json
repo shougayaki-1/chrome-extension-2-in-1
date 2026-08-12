@@ -1,0 +1,12 @@
+{
+  "name": "kokugo-2in1-print",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "build": "node scripts/build.js",
+    "check": "npm test && npm run build",
+    "vendor": "node scripts/fetch-vendor.js"
+  }
+}

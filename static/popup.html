@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>国語用 2in1印刷</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <h1>国語用 2in1印刷</h1>
+    <div class="preview" aria-label="右から左への2in1配置">
+      <div>2</div><div>1</div>
+    </div>
+    <p class="direction">右 → 左 ・ 2ページ / 1枚</p>
+    <p id="source" class="source">PDFを確認しています…</p>
+    <button id="open-kokugo" type="button" disabled>国語用で開く</button>
+    <p id="status" class="status" role="status">PDFを確認しています…</p>
+  </main>
+  <script type="module" src="src/popup.js"></script>
+</body>
+</html>
