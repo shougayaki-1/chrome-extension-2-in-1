@@ -1,4 +1,5 @@
 import { detectPdfInPage } from './detect-pdf.js';
+import { encodePdfBytes } from './pdf-source.js';
 import {
   assertFileSchemeAccessAllowed,
   choosePdfUrl,
@@ -108,7 +109,7 @@ fileInput.addEventListener('change', async () => {
     }
     const result = await chrome.runtime.sendMessage({
       type: 'TRANSFORM_PDF_BYTES',
-      bytes: await file.arrayBuffer(),
+      bytes: encodePdfBytes(await file.arrayBuffer()),
       windowId: activeTab.windowId
     });
     if (!result?.ok) throw new Error(result?.error || 'PDFの変換に失敗しました。');

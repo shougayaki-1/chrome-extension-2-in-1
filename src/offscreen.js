@@ -1,4 +1,4 @@
-import { fetchPdfBytes, isPdfBytes } from './pdf-source.js';
+import { decodePdfBytes, fetchPdfBytes, isPdfBytes } from './pdf-source.js';
 import { transformPdf } from './pdf-transform-browser.js';
 
 const objectUrls = new Set();
@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   const isBytesRequest = message?.type === 'OFFSCREEN_TRANSFORM_PDF_BYTES';
   if (!isUrlRequest && !isBytesRequest) return undefined;
 
-  (isBytesRequest ? transformBytes(message.bytes) : transformUrl(message.url))
+  (isBytesRequest ? transformBytes(decodePdfBytes(message.bytes)) : transformUrl(message.url))
     .then((url) => sendResponse({ ok: true, url }))
     .catch((error) => sendResponse({ ok: false, error: error?.message || String(error) }));
   return true;

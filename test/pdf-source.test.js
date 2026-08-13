@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchPdfBytes, isPdfBytes } from '../src/pdf-source.js';
+import * as pdfSource from '../src/pdf-source.js';
 
 const encoder = new TextEncoder();
 
@@ -9,6 +10,15 @@ test('isPdfBytes accepts a PDF header found within the first 1024 bytes', () => 
 test('isPdfBytes rejects HTML', () => assert.equal(isPdfBytes(encoder.encode('<!doctype html><html></html>')), false));
 test('isPdfBytes rejects a selected non-PDF file', () => {
   assert.equal(isPdfBytes(encoder.encode('plain text')), false);
+});
+
+test('PDF byte wire encoding survives Chrome JSON message serialization', () => {
+  assert.equal(typeof pdfSource.encodePdfBytes, 'function');
+  assert.equal(typeof pdfSource.decodePdfBytes, 'function');
+  const original = new Uint8Array([37, 80, 68, 70, 0, 255]);
+  const message = JSON.parse(JSON.stringify({ bytes: pdfSource.encodePdfBytes(original.buffer) }));
+
+  assert.deepEqual(pdfSource.decodePdfBytes(message.bytes), original);
 });
 
 test('fetchPdfBytes includes credentials and accepts PDF bytes even with generic content type', async () => {

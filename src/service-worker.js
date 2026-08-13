@@ -1,4 +1,5 @@
 import { validateToshinTransformRequest } from './toshin-message.js';
+import { decodePdfBytes, encodePdfBytes } from './pdf-source.js';
 import { openResultInSourceWindow, resolveSourceWindowId } from './window-target.js';
 
 async function hasOffscreenDocument(chromeApi) {
@@ -36,7 +37,7 @@ async function transformRequest(message, sender, chromeApi) {
   const sourceWindowId = resolveSourceWindowId(message?.windowId, sender?.tab?.windowId);
   await ensureOffscreenDocument(chromeApi);
   const result = await chromeApi.runtime.sendMessage(isBytesRequest
-    ? { type: 'OFFSCREEN_TRANSFORM_PDF_BYTES', bytes: message.bytes }
+    ? { type: 'OFFSCREEN_TRANSFORM_PDF_BYTES', bytes: encodePdfBytes(decodePdfBytes(message.bytes)) }
     : { type: 'OFFSCREEN_TRANSFORM_PDF', url: message.url });
   if (!result?.ok) {
     throw new Error(result?.error || 'PDFの変換に失敗しました。');

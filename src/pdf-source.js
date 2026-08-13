@@ -1,5 +1,17 @@
 const PDF_SIGNATURE = new TextEncoder().encode('%PDF-');
 
+export function encodePdfBytes(input) {
+  const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+  return Array.from(bytes);
+}
+
+export function decodePdfBytes(input) {
+  if (!Array.isArray(input) || input.some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255)) {
+    throw new Error('PDFデータの形式が正しくありません。');
+  }
+  return new Uint8Array(input);
+}
+
 export function isPdfBytes(input) {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
   const scanLength = Math.min(bytes.length, 1024);

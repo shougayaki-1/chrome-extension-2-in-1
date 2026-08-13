@@ -67,7 +67,7 @@ test('a byte-originated result opens as the active tab in its source window and 
   const serviceWorker = await import(`../src/service-worker.js?byte-route=${Date.now()}`);
   assert.equal(typeof serviceWorker.transformPdfBytesRequest, 'function');
 
-  const bytes = new Uint8Array([37, 80, 68, 70]).buffer;
+  const bytes = [37, 80, 68, 70];
   const result = await serviceWorker.transformPdfBytesRequest({ bytes, windowId: 42 }, globalThis.chrome);
 
   assert.deepEqual(result, { ok: true });
