@@ -1,18 +1,25 @@
 import { detectPdfInPage } from './detect-pdf.js';
+import { createConversionControlState } from './conversion-control-state.js';
 import {
   assertFileSchemeAccessAllowed,
   choosePdfUrl,
+  createStagedPdfTransformRequest,
   getOptionalOriginPattern,
-  isDirectPdfTabUrl,
+  isFetchablePdfCandidate,
   needsOptionalHostPermission
 } from './popup-logic.js';
+import { createSelectedPdfStore } from './selected-pdf-store.js';
 
 const status = document.querySelector('#status');
 const source = document.querySelector('#source');
 const button = document.querySelector('#open-kokugo');
+const chooseFileButton = document.querySelector('#choose-pdf');
+const fileInput = document.querySelector('#pdf-file');
 
 let activeTab = null;
 let pdfUrl = null;
+const controls = createConversionControlState({ urlButton: button, fileButton: chooseFileButton });
+const selectedPdfStore = createSelectedPdfStore();
 
 function showStatus(message, kind = '') {
   status.textContent = message;
@@ -44,12 +51,12 @@ async function detectCurrentPdf() {
   }
 
   pdfUrl = choosePdfUrl(tab.url, detected);
-  if (!detected && !isDirectPdfTabUrl(pdfUrl)) {
+  if (!detected && !isFetchablePdfCandidate(pdfUrl)) {
     throw new Error('このページからPDFを見つけられませんでした。PDFを開いた状態で試してください。');
   }
 
-  source.textContent = shortUrl(pdfUrl);
-  button.disabled = false;
+  source.textContent = detected ? shortUrl(pdfUrl) : `${shortUrl(pdfUrl)}（未確認）`;
+  controls.setUrlAvailable(true);
   showStatus('右→左の2in1に変換します。');
 }
 
@@ -71,7 +78,7 @@ async function requestPermissionIfNeeded() {
 }
 
 button.addEventListener('click', async () => {
-  button.disabled = true;
+  if (!controls.start()) return;
   showStatus('変換しています…');
   try {
     await requestPermissionIfNeeded();
@@ -85,11 +92,42 @@ button.addEventListener('click', async () => {
     setTimeout(() => window.close(), 350);
   } catch (error) {
     showStatus(error?.message || String(error), 'error');
-    button.disabled = false;
+  } finally {
+    controls.finish();
+  }
+});
+
+chooseFileButton.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', async () => {
+  const [file] = fileInput.files;
+  if (!file) return;
+
+  if (!controls.start()) return;
+  let fileId = null;
+  source.textContent = file.name;
+  showStatus('変換しています…');
+  try {
+    if (!activeTab) {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab) throw new Error('現在のタブを取得できませんでした。');
+      activeTab = tab;
+    }
+    fileId = await selectedPdfStore.stage(file);
+    const result = await chrome.runtime.sendMessage(createStagedPdfTransformRequest(fileId, activeTab.windowId));
+    if (!result?.ok) throw new Error(result?.error || 'PDFの変換に失敗しました。');
+    showStatus('新しいタブで開きました。', 'success');
+    setTimeout(() => window.close(), 350);
+  } catch (error) {
+    if (fileId) await selectedPdfStore.delete(fileId);
+    showStatus(error?.message || String(error), 'error');
+  } finally {
+    controls.finish();
+    fileInput.value = '';
   }
 });
 
 detectCurrentPdf().catch((error) => {
   showStatus(error?.message || String(error), 'error');
-  button.disabled = true;
+  controls.setUrlAvailable(false);
 });

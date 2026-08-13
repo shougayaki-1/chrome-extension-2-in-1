@@ -2,11 +2,23 @@ export function choosePdfUrl(tabUrl, detectedPdf) {
   return detectedPdf?.url || tabUrl;
 }
 
+export function createStagedPdfTransformRequest(fileId, windowId) {
+  return { type: 'TRANSFORM_STAGED_PDF', fileId, windowId };
+}
+
 export function isDirectPdfTabUrl(value) {
   try {
     const url = new URL(value);
     if (!['http:', 'https:', 'file:'].includes(url.protocol)) return false;
     return url.pathname.toLowerCase().endsWith('.pdf');
+  } catch {
+    return false;
+  }
+}
+
+export function isFetchablePdfCandidate(value) {
+  try {
+    return ['http:', 'https:', 'file:'].includes(new URL(value).protocol);
   } catch {
     return false;
   }

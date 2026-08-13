@@ -47,3 +47,33 @@ test('openResultInSourceWindow does not fail conversion when focusing the window
   };
   await assert.doesNotReject(() => openResultInSourceWindow('blob:result', 42, chromeApi));
 });
+
+test('a staged-file result sends only its identifier to offscreen and opens in its source window', async () => {
+  const sent = [];
+  const calls = [];
+  globalThis.chrome = {
+    runtime: {
+      getContexts: async () => [{}],
+      getURL: (path) => `chrome-extension://test/${path}`,
+      onMessage: { addListener: () => {} },
+      sendMessage: async (message) => {
+        sent.push(message);
+        return { ok: true, url: 'blob:result' };
+      }
+    },
+    tabs: { create: async (options) => { calls.push(['tabs.create', options]); } },
+    windows: { update: async (windowId, options) => { calls.push(['windows.update', windowId, options]); } }
+  };
+  const serviceWorker = await import(`../src/service-worker.js?byte-route=${Date.now()}`);
+  assert.equal(typeof serviceWorker.transformStagedPdfRequest, 'function');
+
+  const result = await serviceWorker.transformStagedPdfRequest({ fileId: 'selected-pdf-42', windowId: 42 }, globalThis.chrome);
+
+  assert.deepEqual(result, { ok: true });
+  assert.deepEqual(sent, [{ type: 'OFFSCREEN_TRANSFORM_STAGED_PDF', fileId: 'selected-pdf-42' }]);
+  assert.equal(Object.hasOwn(sent[0], 'bytes'), false);
+  assert.deepEqual(calls, [
+    ['tabs.create', { windowId: 42, url: 'blob:result', active: true }],
+    ['windows.update', 42, { focused: true }]
+  ]);
+});
