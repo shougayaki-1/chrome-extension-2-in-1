@@ -47,3 +47,33 @@ test('openResultInSourceWindow does not fail conversion when focusing the window
   };
   await assert.doesNotReject(() => openResultInSourceWindow('blob:result', 42, chromeApi));
 });
+
+test('a byte-originated result opens as the active tab in its source window and focuses it', async () => {
+  const sent = [];
+  const calls = [];
+  globalThis.chrome = {
+    runtime: {
+      getContexts: async () => [{}],
+      getURL: (path) => `chrome-extension://test/${path}`,
+      onMessage: { addListener: () => {} },
+      sendMessage: async (message) => {
+        sent.push(message);
+        return { ok: true, url: 'blob:result' };
+      }
+    },
+    tabs: { create: async (options) => { calls.push(['tabs.create', options]); } },
+    windows: { update: async (windowId, options) => { calls.push(['windows.update', windowId, options]); } }
+  };
+  const serviceWorker = await import(`../src/service-worker.js?byte-route=${Date.now()}`);
+  assert.equal(typeof serviceWorker.transformPdfBytesRequest, 'function');
+
+  const bytes = new Uint8Array([37, 80, 68, 70]).buffer;
+  const result = await serviceWorker.transformPdfBytesRequest({ bytes, windowId: 42 }, globalThis.chrome);
+
+  assert.deepEqual(result, { ok: true });
+  assert.deepEqual(sent, [{ type: 'OFFSCREEN_TRANSFORM_PDF_BYTES', bytes }]);
+  assert.deepEqual(calls, [
+    ['tabs.create', { windowId: 42, url: 'blob:result', active: true }],
+    ['windows.update', 42, { focused: true }]
+  ]);
+});

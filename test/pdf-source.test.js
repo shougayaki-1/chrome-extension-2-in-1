@@ -7,6 +7,9 @@ const encoder = new TextEncoder();
 test('isPdfBytes accepts a normal PDF header', () => assert.equal(isPdfBytes(encoder.encode('%PDF-1.7\nhello')), true));
 test('isPdfBytes accepts a PDF header found within the first 1024 bytes', () => assert.equal(isPdfBytes(encoder.encode(`${'x'.repeat(40)}%PDF-1.4\nhello`)), true));
 test('isPdfBytes rejects HTML', () => assert.equal(isPdfBytes(encoder.encode('<!doctype html><html></html>')), false));
+test('isPdfBytes rejects a selected non-PDF file', () => {
+  assert.equal(isPdfBytes(encoder.encode('plain text')), false);
+});
 
 test('fetchPdfBytes includes credentials and accepts PDF bytes even with generic content type', async () => {
   let received;

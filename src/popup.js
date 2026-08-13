@@ -10,6 +10,8 @@ import {
 const status = document.querySelector('#status');
 const source = document.querySelector('#source');
 const button = document.querySelector('#open-kokugo');
+const chooseFileButton = document.querySelector('#choose-pdf');
+const fileInput = document.querySelector('#pdf-file');
 
 let activeTab = null;
 let pdfUrl = null;
@@ -86,6 +88,37 @@ button.addEventListener('click', async () => {
   } catch (error) {
     showStatus(error?.message || String(error), 'error');
     button.disabled = false;
+  }
+});
+
+chooseFileButton.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', async () => {
+  const [file] = fileInput.files;
+  if (!file) return;
+
+  chooseFileButton.disabled = true;
+  source.textContent = file.name;
+  showStatus('変換しています…');
+  try {
+    if (!activeTab) {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab) throw new Error('現在のタブを取得できませんでした。');
+      activeTab = tab;
+    }
+    const result = await chrome.runtime.sendMessage({
+      type: 'TRANSFORM_PDF_BYTES',
+      bytes: await file.arrayBuffer(),
+      windowId: activeTab.windowId
+    });
+    if (!result?.ok) throw new Error(result?.error || 'PDFの変換に失敗しました。');
+    showStatus('新しいタブで開きました。', 'success');
+    setTimeout(() => window.close(), 350);
+  } catch (error) {
+    showStatus(error?.message || String(error), 'error');
+    chooseFileButton.disabled = false;
+  } finally {
+    fileInput.value = '';
   }
 });
 
