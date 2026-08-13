@@ -16,3 +16,9 @@ test('manifest injects the Toshin button and grants Toshin plus local file acces
     run_at: 'document_idle'
   }]);
 });
+
+test('manifest remains MV3 and ships the popup entry point', async () => {
+  const manifest = await readManifest();
+  assert.equal(manifest.manifest_version, 3);
+  assert.equal(manifest.action.default_popup, 'popup.html');
+});
