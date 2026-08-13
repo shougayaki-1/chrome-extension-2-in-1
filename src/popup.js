@@ -1,12 +1,14 @@
 import { detectPdfInPage } from './detect-pdf.js';
-import { encodePdfBytes } from './pdf-source.js';
+import { createConversionControlState } from './conversion-control-state.js';
 import {
   assertFileSchemeAccessAllowed,
   choosePdfUrl,
+  createStagedPdfTransformRequest,
   getOptionalOriginPattern,
   isFetchablePdfCandidate,
   needsOptionalHostPermission
 } from './popup-logic.js';
+import { createSelectedPdfStore } from './selected-pdf-store.js';
 
 const status = document.querySelector('#status');
 const source = document.querySelector('#source');
@@ -16,6 +18,8 @@ const fileInput = document.querySelector('#pdf-file');
 
 let activeTab = null;
 let pdfUrl = null;
+const controls = createConversionControlState({ urlButton: button, fileButton: chooseFileButton });
+const selectedPdfStore = createSelectedPdfStore();
 
 function showStatus(message, kind = '') {
   status.textContent = message;
@@ -52,7 +56,7 @@ async function detectCurrentPdf() {
   }
 
   source.textContent = detected ? shortUrl(pdfUrl) : `${shortUrl(pdfUrl)}（未確認）`;
-  button.disabled = false;
+  controls.setUrlAvailable(true);
   showStatus('右→左の2in1に変換します。');
 }
 
@@ -74,7 +78,7 @@ async function requestPermissionIfNeeded() {
 }
 
 button.addEventListener('click', async () => {
-  button.disabled = true;
+  if (!controls.start()) return;
   showStatus('変換しています…');
   try {
     await requestPermissionIfNeeded();
@@ -88,7 +92,8 @@ button.addEventListener('click', async () => {
     setTimeout(() => window.close(), 350);
   } catch (error) {
     showStatus(error?.message || String(error), 'error');
-    button.disabled = false;
+  } finally {
+    controls.finish();
   }
 });
 
@@ -98,7 +103,8 @@ fileInput.addEventListener('change', async () => {
   const [file] = fileInput.files;
   if (!file) return;
 
-  chooseFileButton.disabled = true;
+  if (!controls.start()) return;
+  let fileId = null;
   source.textContent = file.name;
   showStatus('変換しています…');
   try {
@@ -107,23 +113,21 @@ fileInput.addEventListener('change', async () => {
       if (!tab) throw new Error('現在のタブを取得できませんでした。');
       activeTab = tab;
     }
-    const result = await chrome.runtime.sendMessage({
-      type: 'TRANSFORM_PDF_BYTES',
-      bytes: encodePdfBytes(await file.arrayBuffer()),
-      windowId: activeTab.windowId
-    });
+    fileId = await selectedPdfStore.stage(file);
+    const result = await chrome.runtime.sendMessage(createStagedPdfTransformRequest(fileId, activeTab.windowId));
     if (!result?.ok) throw new Error(result?.error || 'PDFの変換に失敗しました。');
     showStatus('新しいタブで開きました。', 'success');
     setTimeout(() => window.close(), 350);
   } catch (error) {
+    if (fileId) await selectedPdfStore.delete(fileId);
     showStatus(error?.message || String(error), 'error');
-    chooseFileButton.disabled = false;
   } finally {
+    controls.finish();
     fileInput.value = '';
   }
 });
 
 detectCurrentPdf().catch((error) => {
   showStatus(error?.message || String(error), 'error');
-  button.disabled = true;
+  controls.setUrlAvailable(false);
 });

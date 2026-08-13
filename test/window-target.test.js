@@ -48,7 +48,7 @@ test('openResultInSourceWindow does not fail conversion when focusing the window
   await assert.doesNotReject(() => openResultInSourceWindow('blob:result', 42, chromeApi));
 });
 
-test('a byte-originated result opens as the active tab in its source window and focuses it', async () => {
+test('a staged-file result sends only its identifier to offscreen and opens in its source window', async () => {
   const sent = [];
   const calls = [];
   globalThis.chrome = {
@@ -65,13 +65,13 @@ test('a byte-originated result opens as the active tab in its source window and 
     windows: { update: async (windowId, options) => { calls.push(['windows.update', windowId, options]); } }
   };
   const serviceWorker = await import(`../src/service-worker.js?byte-route=${Date.now()}`);
-  assert.equal(typeof serviceWorker.transformPdfBytesRequest, 'function');
+  assert.equal(typeof serviceWorker.transformStagedPdfRequest, 'function');
 
-  const bytes = [37, 80, 68, 70];
-  const result = await serviceWorker.transformPdfBytesRequest({ bytes, windowId: 42 }, globalThis.chrome);
+  const result = await serviceWorker.transformStagedPdfRequest({ fileId: 'selected-pdf-42', windowId: 42 }, globalThis.chrome);
 
   assert.deepEqual(result, { ok: true });
-  assert.deepEqual(sent, [{ type: 'OFFSCREEN_TRANSFORM_PDF_BYTES', bytes }]);
+  assert.deepEqual(sent, [{ type: 'OFFSCREEN_TRANSFORM_STAGED_PDF', fileId: 'selected-pdf-42' }]);
+  assert.equal(Object.hasOwn(sent[0], 'bytes'), false);
   assert.deepEqual(calls, [
     ['tabs.create', { windowId: 42, url: 'blob:result', active: true }],
     ['windows.update', 42, { focused: true }]

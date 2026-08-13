@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assertFileSchemeAccessAllowed, choosePdfUrl, getOptionalOriginPattern, isDirectPdfTabUrl, isFetchablePdfCandidate, needsOptionalHostPermission } from '../src/popup-logic.js';
+import { assertFileSchemeAccessAllowed, choosePdfUrl, createStagedPdfTransformRequest, getOptionalOriginPattern, isDirectPdfTabUrl, isFetchablePdfCandidate, needsOptionalHostPermission } from '../src/popup-logic.js';
 
 test('choosePdfUrl prefers a detected embedded PDF over the tab URL', () => assert.equal(choosePdfUrl('https://school.example/page', { url: 'https://cdn.example/file.pdf' }), 'https://cdn.example/file.pdf'));
 test('choosePdfUrl falls back to the current tab URL', () => assert.equal(choosePdfUrl('https://school.example/file.pdf', null), 'https://school.example/file.pdf'));
@@ -17,4 +17,10 @@ test('needsOptionalHostPermission is false for a local PDF', () => assert.equal(
 test('assertFileSchemeAccessAllowed explains how to enable local PDF access', () => {
   assert.throws(() => assertFileSchemeAccessAllowed('file:///Users/student/Downloads/kokugo.pdf', false), /「ファイルの URL へのアクセスを許可」をON/);
   assert.doesNotThrow(() => assertFileSchemeAccessAllowed('file:///Users/student/Downloads/kokugo.pdf', true));
+});
+
+test('the selected-file popup request carries an identifier instead of PDF bytes', () => {
+  const message = createStagedPdfTransformRequest('selected-pdf-42', 42);
+  assert.deepEqual(message, { type: 'TRANSFORM_STAGED_PDF', fileId: 'selected-pdf-42', windowId: 42 });
+  assert.equal(Object.hasOwn(message, 'bytes'), false);
 });

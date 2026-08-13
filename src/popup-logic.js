@@ -2,6 +2,10 @@ export function choosePdfUrl(tabUrl, detectedPdf) {
   return detectedPdf?.url || tabUrl;
 }
 
+export function createStagedPdfTransformRequest(fileId, windowId) {
+  return { type: 'TRANSFORM_STAGED_PDF', fileId, windowId };
+}
+
 export function isDirectPdfTabUrl(value) {
   try {
     const url = new URL(value);

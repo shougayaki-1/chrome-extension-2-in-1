@@ -1,5 +1,4 @@
 import { validateToshinTransformRequest } from './toshin-message.js';
-import { decodePdfBytes, encodePdfBytes } from './pdf-source.js';
 import { openResultInSourceWindow, resolveSourceWindowId } from './window-target.js';
 
 async function hasOffscreenDocument(chromeApi) {
@@ -33,11 +32,11 @@ async function ensureOffscreenDocument(chromeApi) {
 }
 
 async function transformRequest(message, sender, chromeApi) {
-  const isBytesRequest = message?.type === 'TRANSFORM_PDF_BYTES';
+  const isStagedFileRequest = message?.type === 'TRANSFORM_STAGED_PDF';
   const sourceWindowId = resolveSourceWindowId(message?.windowId, sender?.tab?.windowId);
   await ensureOffscreenDocument(chromeApi);
-  const result = await chromeApi.runtime.sendMessage(isBytesRequest
-    ? { type: 'OFFSCREEN_TRANSFORM_PDF_BYTES', bytes: encodePdfBytes(decodePdfBytes(message.bytes)) }
+  const result = await chromeApi.runtime.sendMessage(isStagedFileRequest
+    ? { type: 'OFFSCREEN_TRANSFORM_STAGED_PDF', fileId: message.fileId }
     : { type: 'OFFSCREEN_TRANSFORM_PDF', url: message.url });
   if (!result?.ok) {
     throw new Error(result?.error || 'PDFの変換に失敗しました。');
@@ -46,15 +45,15 @@ async function transformRequest(message, sender, chromeApi) {
   return { ok: true };
 }
 
-export async function transformPdfBytesRequest(message, chromeApi = chrome) {
-  return transformRequest({ ...message, type: 'TRANSFORM_PDF_BYTES' }, undefined, chromeApi);
+export async function transformStagedPdfRequest(message, chromeApi = chrome) {
+  return transformRequest({ ...message, type: 'TRANSFORM_STAGED_PDF' }, undefined, chromeApi);
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const isPopupRequest = message?.type === 'TRANSFORM_PDF';
   const isToshinRequest = message?.type === 'TRANSFORM_TOSHIN_PDF';
-  const isBytesRequest = message?.type === 'TRANSFORM_PDF_BYTES';
-  if (!isPopupRequest && !isToshinRequest && !isBytesRequest) return undefined;
+  const isStagedFileRequest = message?.type === 'TRANSFORM_STAGED_PDF';
+  if (!isPopupRequest && !isToshinRequest && !isStagedFileRequest) return undefined;
 
   if (isToshinRequest && !validateToshinTransformRequest(message.url, sender?.tab?.url || '')) {
     sendResponse({ ok: false, error: '東進の問題PDFとして確認できないURLです。' });
