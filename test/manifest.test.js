@@ -8,7 +8,8 @@ async function readManifest() {
 
 test('manifest injects the Toshin button and grants Toshin plus local file access', async () => {
   const manifest = await readManifest();
-  assert.equal(manifest.version, '0.2.0');
+  const packageInfo = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  assert.equal(manifest.version, packageInfo.version);
   assert.deepEqual(manifest.host_permissions, ['https://pos.toshin.com/*', 'file:///*']);
   assert.deepEqual(manifest.content_scripts, [{
     matches: ['https://pos.toshin.com/*'],
