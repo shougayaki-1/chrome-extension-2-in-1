@@ -83,7 +83,7 @@ npm run build
 
 1. [Actions](https://github.com/shougayaki-1/chrome-extension-2-in-1/actions/workflows/chrome-web-store.yml) から成功した実行を開きます。
 2. **Artifacts** の `chrome-web-store-package` をダウンロードします。
-3. ダウンロードしたアーティファクトZIPを展開し、その中の `chrome-2in1-vX.Y.Z.zip` を使用します。**外側のアーティファクトZIPをアップロードしないでください。**
+3. ダウンロードした `chrome-web-store-package.zip` を**解凍せずにそのままアップロード**します。ZIPのルートに `manifest.json` が含まれます。
 4. [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) で既存の「国語用 2in1印刷」を開き、**パッケージ → 新しいパッケージをアップロード** から上記のZIPを選択します。
 5. ストア掲載情報に変更があれば更新し、**審査のために送信**します。承認後の自動公開を選択できます。
 
