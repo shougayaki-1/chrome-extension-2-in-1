@@ -48,7 +48,7 @@ test('openResultInSourceWindow does not fail conversion when focusing the window
   await assert.doesNotReject(() => openResultInSourceWindow('blob:result', 42, chromeApi));
 });
 
-test('a staged-file result sends only its identifier to offscreen and opens in its source window', async () => {
+test('a staged-file result sends its identifier and reading direction to offscreen and opens in its source window', async () => {
   const sent = [];
   const calls = [];
   globalThis.chrome = {
@@ -70,7 +70,7 @@ test('a staged-file result sends only its identifier to offscreen and opens in i
   const result = await serviceWorker.transformStagedPdfRequest({ fileId: 'selected-pdf-42', windowId: 42 }, globalThis.chrome);
 
   assert.deepEqual(result, { ok: true });
-  assert.deepEqual(sent, [{ type: 'OFFSCREEN_TRANSFORM_STAGED_PDF', fileId: 'selected-pdf-42' }]);
+  assert.deepEqual(sent, [{ type: 'OFFSCREEN_TRANSFORM_STAGED_PDF', fileId: 'selected-pdf-42', direction: 'rtl' }]);
   assert.equal(Object.hasOwn(sent[0], 'bytes'), false);
   assert.deepEqual(calls, [
     ['tabs.create', { windowId: 42, url: 'blob:result', active: true }],
