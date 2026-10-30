@@ -26,24 +26,19 @@ jobs:
       - name: Test and build
         run: npm run check
 
-      - name: Create store ZIP
+      - name: Prepare store package
         shell: bash
         run: |
           set -euo pipefail
-          version="$(node -p "require('./static/manifest.json').version")"
-          package="chrome-2in1-v${version}.zip"
-          # The ZIP root must contain manifest.json (not an extension/ directory).
-          cd extension
-          zip -q -r "../${package}" . -x 'BUILD_INFO.txt'
-          cd ..
-          test -s "${package}"
-          unzip -l "${package}" | grep -q 'manifest.json'
-          echo "PACKAGE_NAME=${package}" >> "${GITHUB_ENV}"
+          # GitHub creates the downloadable ZIP. Upload the folder, not an inner ZIP.
+          rm extension/BUILD_INFO.txt
+          test -f extension/manifest.json
+          node -e "const m = require('./extension/manifest.json'); if (m.manifest_version !== 3) process.exit(1)"
 
       - name: Upload Chrome Web Store package
         uses: actions/upload-artifact@v4
         with:
           name: chrome-web-store-package
-          path: ${{ env.PACKAGE_NAME }}
+          path: extension/
           if-no-files-found: error
           retention-days: 30
