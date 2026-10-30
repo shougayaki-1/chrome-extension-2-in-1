@@ -43,6 +43,19 @@ test('transformPdfWithLibrary draws pages in right-to-left pairs', async () => {
   assert.equal(lastRight.x >= 421, true);
 });
 
+test('transformPdfWithLibrary draws normal left-to-right pairs and leaves last right half blank', async () => {
+  const { PDFDocument, calls } = createFakePdfLibrary([
+    { width: 595, height: 842 }, { width: 595, height: 842 }, { width: 595, height: 842 }
+  ]);
+  await transformPdfWithLibrary(new Uint8Array([1, 2, 3]), PDFDocument, 'ltr');
+  assert.deepEqual(calls.addPage, [[842, 595], [842, 595]]);
+  assert.deepEqual(calls.drawPage.map(({ page }) => page.embeddedIndex), [0, 1, 2]);
+  const [firstLeft, firstRight, lastLeft] = calls.drawPage.map(({ options }) => options);
+  assert.ok(firstLeft.x >= 0 && firstLeft.x < 1);
+  assert.ok(firstRight.x >= 421);
+  assert.ok(lastLeft.x >= 0 && lastLeft.x < 1);
+});
+
 test('transformPdfWithLibrary rejects a PDF with no pages', async () => {
   const { PDFDocument } = createFakePdfLibrary([]);
   await assert.rejects(transformPdfWithLibrary(new Uint8Array([1]), PDFDocument), /at least one page/i);

@@ -43,7 +43,7 @@ function drawPlacement(page, placement, rotation) {
   page.target.drawPage(page.embedded, options);
 }
 
-export async function transformPdfWithLibrary(inputBytes, PDFDocument) {
+export async function transformPdfWithLibrary(inputBytes, PDFDocument, direction = 'rtl') {
   const source = await PDFDocument.load(inputBytes);
   const sourcePages = source.getPages();
   if (sourcePages.length === 0) {
@@ -53,7 +53,7 @@ export async function transformPdfWithLibrary(inputBytes, PDFDocument) {
   const output = await PDFDocument.create();
   const geometries = sourcePages.map(getPageGeometry);
   const embeddedPages = await output.embedPages(sourcePages, geometries.map(({ boundingBox }) => boundingBox));
-  const plan = createSpreadPlan(geometries.map(({ size }) => size));
+  const plan = createSpreadPlan(geometries.map(({ size }) => size), direction);
 
   for (const spread of plan.spreads) {
     const target = output.addPage([plan.sheet.width, plan.sheet.height]);
@@ -62,8 +62,10 @@ export async function transformPdfWithLibrary(inputBytes, PDFDocument) {
       drawPlacement({ target, embedded: embeddedPages[spread.left.pageIndex] }, spread.left,
         geometries[spread.left.pageIndex].rotation);
     }
-    drawPlacement({ target, embedded: embeddedPages[spread.right.pageIndex] }, spread.right,
-      geometries[spread.right.pageIndex].rotation);
+    if (spread.right) {
+      drawPlacement({ target, embedded: embeddedPages[spread.right.pageIndex] }, spread.right,
+        geometries[spread.right.pageIndex].rotation);
+    }
   }
 
   return output.save();

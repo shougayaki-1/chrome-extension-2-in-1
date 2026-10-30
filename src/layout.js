@@ -15,9 +15,13 @@ export function fitPage(sourceWidth, sourceHeight, box) {
   };
 }
 
-export function createSpreadPlan(pageSizes) {
+export function createSpreadPlan(pageSizes, direction = 'rtl') {
   if (!Array.isArray(pageSizes) || pageSizes.length === 0) {
     throw new Error('PDF must contain at least one page.');
+  }
+
+  if (!['rtl', 'ltr'].includes(direction)) {
+    throw new Error('Invalid page direction.');
   }
 
   const first = pageSizes[0];
@@ -31,22 +35,13 @@ export function createSpreadPlan(pageSizes) {
   const spreads = [];
 
   for (let pageIndex = 0; pageIndex < pageSizes.length; pageIndex += 2) {
-    const rightSize = pageSizes[pageIndex];
-    const right = {
-      pageIndex,
-      ...fitPage(rightSize.width, rightSize.height, rightBox)
-    };
+    const leftIndex = direction === 'ltr' ? pageIndex : pageIndex + 1;
+    const rightIndex = direction === 'rtl' ? pageIndex : pageIndex + 1;
+    const place = (index, box) => index < pageSizes.length
+      ? { pageIndex: index, ...fitPage(pageSizes[index].width, pageSizes[index].height, box) }
+      : null;
 
-    let left = null;
-    if (pageIndex + 1 < pageSizes.length) {
-      const leftSize = pageSizes[pageIndex + 1];
-      left = {
-        pageIndex: pageIndex + 1,
-        ...fitPage(leftSize.width, leftSize.height, leftBox)
-      };
-    }
-
-    spreads.push({ left, right });
+    spreads.push({ left: place(leftIndex, leftBox), right: place(rightIndex, rightBox) });
   }
 
   return { sheet, spreads };

@@ -22,6 +22,25 @@ test('createSpreadPlan lays portrait pages out right-to-left on landscape sheets
   assert.ok(plan.spreads[0].left.x < plan.spreads[0].right.x);
 });
 
+test('createSpreadPlan lays pages out left-to-right in normal mode', () => {
+  const pages = Array.from({ length: 4 }, () => ({ width: 595, height: 842 }));
+  const plan = createSpreadPlan(pages, 'ltr');
+  assert.deepEqual(plan.spreads.map(({ left, right }) => [left.pageIndex, right.pageIndex]),
+    [[0, 1], [2, 3]]);
+  assert.ok(plan.spreads[0].left.x < plan.spreads[0].right.x);
+});
+
+test('createSpreadPlan leaves the right half blank for the final odd page in normal mode', () => {
+  const pages = Array.from({ length: 5 }, () => ({ width: 595, height: 842 }));
+  const plan = createSpreadPlan(pages, 'ltr');
+  assert.equal(plan.spreads[2].left.pageIndex, 4);
+  assert.equal(plan.spreads[2].right, null);
+});
+
+test('createSpreadPlan rejects unknown page directions', () => {
+  assert.throws(() => createSpreadPlan([{ width: 595, height: 842 }], 'backwards'), /direction/i);
+});
+
 test('createSpreadPlan leaves the left half blank for the final odd page', () => {
   const pages = Array.from({ length: 5 }, () => ({ width: 595, height: 842 }));
   const plan = createSpreadPlan(pages);

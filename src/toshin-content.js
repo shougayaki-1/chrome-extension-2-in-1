@@ -23,6 +23,12 @@
         align-items: flex-end;
         gap: 8px;
       }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
       button {
         appearance: none;
         border: 0;
@@ -53,21 +59,24 @@
     </style>
     <div class="panel">
       <div class="status" role="status"></div>
-      <button type="button">国語用 2in1</button>
+      <div class="actions">
+        <button type="button" data-direction="rtl">国語用 2in1</button>
+        <button type="button" data-direction="ltr">通常 2in1</button>
+      </div>
     </div>
   `;
   shadow.appendChild(wrap);
   document.documentElement.appendChild(host);
 
-  const button = shadow.querySelector('button');
+  const buttons = [...shadow.querySelectorAll('button[data-direction]')];
   const status = shadow.querySelector('.status');
 
   function setStatus(text) {
     status.textContent = text;
   }
 
-  button.addEventListener('click', async () => {
-    button.disabled = true;
+  async function convert(direction) {
+    for (const button of buttons) button.disabled = true;
     setStatus('PDFを確認しています…');
 
     try {
@@ -76,10 +85,11 @@
         throw new Error('この画面から問題PDFのURLを取得できませんでした。');
       }
 
-      setStatus('右→左の2in1に変換しています…');
+      setStatus(`${direction === 'ltr' ? '左→右' : '右→左'}の2in1に変換しています…`);
       const result = await chrome.runtime.sendMessage({
         type: 'TRANSFORM_TOSHIN_PDF',
-        url: pdfUrl
+        url: pdfUrl,
+        direction
       });
       if (!result?.ok) throw new Error(result?.error || 'PDFの変換に失敗しました。');
 
@@ -88,7 +98,11 @@
     } catch (error) {
       setStatus(error?.message || String(error));
     } finally {
-      button.disabled = false;
+      for (const button of buttons) button.disabled = false;
     }
-  });
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => convert(button.dataset.direction));
+  }
 })();

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "国語用 2in1印刷",
-  "version": "0.2.1",
-  "description": "PDFを右→左の国語用2in1に変換してChrome標準PDF Viewerで開きます。",
+  "version": "0.2.2",
+  "description": "PDFを国語用の右→左、または通常の左→右の2in1に変換してChrome標準PDF Viewerで開きます。",
   "minimum_chrome_version": "109",
   "permissions": [
     "activeTab",

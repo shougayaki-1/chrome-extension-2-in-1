@@ -34,10 +34,11 @@ async function ensureOffscreenDocument(chromeApi) {
 async function transformRequest(message, sender, chromeApi) {
   const isStagedFileRequest = message?.type === 'TRANSFORM_STAGED_PDF';
   const sourceWindowId = resolveSourceWindowId(message?.windowId, sender?.tab?.windowId);
+  const direction = message?.direction === 'ltr' ? 'ltr' : 'rtl';
   await ensureOffscreenDocument(chromeApi);
   const result = await chromeApi.runtime.sendMessage(isStagedFileRequest
-    ? { type: 'OFFSCREEN_TRANSFORM_STAGED_PDF', fileId: message.fileId }
-    : { type: 'OFFSCREEN_TRANSFORM_PDF', url: message.url });
+    ? { type: 'OFFSCREEN_TRANSFORM_STAGED_PDF', fileId: message.fileId, direction }
+    : { type: 'OFFSCREEN_TRANSFORM_PDF', url: message.url, direction });
   if (!result?.ok) {
     throw new Error(result?.error || 'PDFの変換に失敗しました。');
   }
