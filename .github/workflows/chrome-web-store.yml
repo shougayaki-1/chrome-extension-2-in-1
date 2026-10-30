@@ -1,0 +1,49 @@
+name: Chrome Web Store package
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download and verify pdf-lib
+        run: npm run vendor
+
+      - name: Test and build
+        run: npm run check
+
+      - name: Create store ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./static/manifest.json').version")"
+          package="chrome-2in1-v${version}.zip"
+          # The ZIP root must contain manifest.json (not an extension/ directory).
+          cd extension
+          zip -q -r "../${package}" . -x 'BUILD_INFO.txt'
+          cd ..
+          test -s "${package}"
+          unzip -l "${package}" | grep -q 'manifest.json'
+          echo "PACKAGE_NAME=${package}" >> "${GITHUB_ENV}"
+
+      - name: Upload Chrome Web Store package
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-web-store-package
+          path: ${{ env.PACKAGE_NAME }}
+          if-no-files-found: error
+          retention-days: 30

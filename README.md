@@ -75,6 +75,20 @@ npm run build
 - 元PDFの回転指定を反映し、縦書き本文が横倒しになる問題と不要な余白を修正しました。
 - 表示範囲（CropBox）と原点のずれを反映して配置します。
 
+
+## Chrome Web Store向けZIPの生成（GitHub Actions）
+
+`main` ブランチにpushすると、GitHub Actionsの **Chrome Web Store package** が自動実行されます。
+ローカルでZIPを用意する必要はありません。
+
+1. [Actions](https://github.com/shougayaki-1/chrome-extension-2-in-1/actions/workflows/chrome-web-store.yml) から成功した実行を開きます。
+2. **Artifacts** の `chrome-web-store-package` をダウンロードします。
+3. ダウンロードしたアーティファクトZIPを展開し、その中の `chrome-2in1-vX.Y.Z.zip` を使用します。**外側のアーティファクトZIPをアップロードしないでください。**
+4. [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) で既存の「国語用 2in1印刷」を開き、**パッケージ → 新しいパッケージをアップロード** から上記のZIPを選択します。
+5. ストア掲載情報に変更があれば更新し、**審査のために送信**します。承認後の自動公開を選択できます。
+
+GitHub Actionsでは、固定バージョンのpdf-libをSHA-1検証して取得し、`npm run check` でテストとビルドを実行します。成果物ZIPの直下には `manifest.json` があり、`BUILD_INFO.txt` は含めません。
+
 ## Chrome Web Store の更新
 
 1. `static/manifest.json` と `package.json` のバージョンを、公開済みバージョンより大きくします。
