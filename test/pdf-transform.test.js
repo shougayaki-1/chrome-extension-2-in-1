@@ -38,9 +38,9 @@ test('transformPdfWithLibrary draws pages in right-to-left pairs', async () => {
   assert.deepEqual(calls.addPage, [[842, 595], [842, 595]]);
   assert.deepEqual(calls.drawPage.map(({ page }) => page.embeddedIndex), [1, 0, 2]);
   const [left, right, lastRight] = calls.drawPage.map(({ options }) => options);
-  assert.equal(left.x >= 0 && left.x < 1, true);
-  assert.equal(right.x >= 421, true);
-  assert.equal(lastRight.x >= 421, true);
+  assert.ok(left.x >= 12);
+  assert.ok(right.x >= 421 + 12);
+  assert.ok(lastRight.x >= 421 + 12);
 });
 
 test('transformPdfWithLibrary draws normal left-to-right pairs and leaves last right half blank', async () => {
@@ -51,9 +51,9 @@ test('transformPdfWithLibrary draws normal left-to-right pairs and leaves last r
   assert.deepEqual(calls.addPage, [[842, 595], [842, 595]]);
   assert.deepEqual(calls.drawPage.map(({ page }) => page.embeddedIndex), [0, 1, 2]);
   const [firstLeft, firstRight, lastLeft] = calls.drawPage.map(({ options }) => options);
-  assert.ok(firstLeft.x >= 0 && firstLeft.x < 1);
-  assert.ok(firstRight.x >= 421);
-  assert.ok(lastLeft.x >= 0 && lastLeft.x < 1);
+  assert.ok(firstLeft.x >= 12);
+  assert.ok(firstRight.x >= 421 + 12);
+  assert.ok(lastLeft.x >= 12);
 });
 
 test('transformPdfWithLibrary rejects a PDF with no pages', async () => {
@@ -71,10 +71,10 @@ test('rotated landscape source pages are fitted using their displayed portrait d
   const [left, right] = calls.drawPage.map(({ options }) => options);
   assert.equal(left.rotate.angle, -270);
   assert.equal(right.rotate.angle, -270);
-  assert.ok(Math.abs(left.width - 728.4 * (364.2 / 516)) < 1e-9);
-  assert.equal(left.height, 364.2);
-  assert.equal(left.x, 364.2);
-  assert.equal(right.x, 728.4);
+  assert.ok(Math.abs(left.height - (364.2 - 24)) < 1e-9);
+  assert.ok(Math.abs(left.width - 728.4 * ((364.2 - 24) / 516)) < 1e-9);
+  assert.ok(left.x >= 12 && left.x + left.height <= 364.2 - 12 + 1e-9);
+  assert.ok(right.x >= 364.2 + 12);
 });
 
 test('rotation origins keep every quarter turn within its fitted box', async () => {
