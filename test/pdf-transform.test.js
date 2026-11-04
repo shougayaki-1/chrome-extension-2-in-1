@@ -73,7 +73,7 @@ test('rotated landscape source pages are fitted using their displayed portrait d
   assert.equal(right.rotate.angle, -270);
   assert.ok(Math.abs(left.height - (364.2 - 24)) < 1e-9);
   assert.ok(Math.abs(left.width - 728.4 * ((364.2 - 24) / 516)) < 1e-9);
-  assert.ok(left.x >= 12 && left.x + left.height <= 364.2 - 12 + 1e-9);
+  assert.ok(Math.abs(left.x - (364.2 - 12)) < 1e-9);
   assert.ok(right.x >= 364.2 + 12);
 });
 
