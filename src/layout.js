@@ -15,6 +15,10 @@ export function fitPage(sourceWidth, sourceHeight, box) {
   };
 }
 
+// Reserve a printable safety area around every half-page. Without this inset,
+// content on the source page edge can be clipped by printer hardware margins.
+export const PRINT_SAFE_MARGIN = 12; // PDF points (approximately 4.2 mm)
+
 export function createSpreadPlan(pageSizes, direction = 'rtl') {
   if (!Array.isArray(pageSizes) || pageSizes.length === 0) {
     throw new Error('PDF must contain at least one page.');
@@ -30,8 +34,14 @@ export function createSpreadPlan(pageSizes, direction = 'rtl') {
     : { width: first.width, height: first.height };
 
   const halfWidth = sheet.width / 2;
-  const leftBox = { x: 0, y: 0, width: halfWidth, height: sheet.height };
-  const rightBox = { x: halfWidth, y: 0, width: halfWidth, height: sheet.height };
+  const margin = Math.min(PRINT_SAFE_MARGIN, halfWidth / 4, sheet.height / 4);
+  const leftBox = {
+    x: margin, y: margin, width: halfWidth - 2 * margin, height: sheet.height - 2 * margin
+  };
+  const rightBox = {
+    x: halfWidth + margin, y: margin,
+    width: halfWidth - 2 * margin, height: sheet.height - 2 * margin
+  };
   const spreads = [];
 
   for (let pageIndex = 0; pageIndex < pageSizes.length; pageIndex += 2) {
