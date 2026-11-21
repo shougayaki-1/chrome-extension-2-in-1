@@ -51,7 +51,9 @@ test('openResultInSourceWindow does not fail conversion when focusing the window
 test('a staged-file result sends its identifier and reading direction to offscreen and opens in its source window', async () => {
   const sent = [];
   const calls = [];
+  let usage = {};
   globalThis.chrome = {
+    storage: { local: { get: async () => usage, set: async (value) => { usage = value; } } },
     runtime: {
       getContexts: async () => [{}],
       getURL: (path) => `chrome-extension://test/${path}`,
@@ -70,6 +72,8 @@ test('a staged-file result sends its identifier and reading direction to offscre
   const result = await serviceWorker.transformStagedPdfRequest({ fileId: 'selected-pdf-42', windowId: 42 }, globalThis.chrome);
 
   assert.deepEqual(result, { ok: true });
+  assert.equal(usage.usageReport.total, 1);
+  assert.equal(usage.usageReport.rtl, 1);
   assert.deepEqual(sent, [{ type: 'OFFSCREEN_TRANSFORM_STAGED_PDF', fileId: 'selected-pdf-42', direction: 'rtl' }]);
   assert.equal(Object.hasOwn(sent[0], 'bytes'), false);
   assert.deepEqual(calls, [

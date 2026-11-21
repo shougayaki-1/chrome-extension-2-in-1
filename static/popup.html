@@ -3,21 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>国語用 2in1印刷</title>
+  <title>PDF 2in1印刷</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <main>
-    <h1>国語用 2in1印刷</h1>
-    <div class="preview" aria-label="右から左への2in1配置">
+    <h1>PDF 2in1印刷</h1>
+    <div class="preview" aria-label="2in1配置のプレビュー">
       <div>2</div><div>1</div>
     </div>
-    <p class="direction">右 → 左 ・ 2ページ / 1枚</p>
+    <label class="direction" for="direction">ページの順序</label>
+    <select id="direction">
+      <option value="rtl">右 → 左（縦書きなど）</option>
+      <option value="ltr">左 → 右（横書きなど）</option>
+    </select>
     <p id="source" class="source">PDFを確認しています…</p>
-    <button id="open-kokugo" type="button" disabled>国語用で開く</button>
+    <button id="open-kokugo" type="button" disabled>2in1で開く</button>
     <button id="choose-pdf" type="button">PDFファイルを選ぶ</button>
     <input id="pdf-file" type="file" accept="application/pdf,.pdf" hidden>
     <p id="status" class="status" role="status">PDFを確認しています…</p>
+    <section class="usage" aria-labelledby="usage-heading">
+      <h2 id="usage-heading">このブラウザの利用レポート</h2>
+      <p id="usage-report" aria-live="polite">読み込み中…</p>
+      <p class="usage-note">変換結果を開いた回数です。この端末内にのみ保存されます。</p>
+    </section>
   </main>
   <script type="module" src="src/popup.js"></script>
 </body>

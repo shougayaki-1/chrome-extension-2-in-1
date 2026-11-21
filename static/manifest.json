@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "国語用 2in1印刷",
-  "version": "0.2.2",
-  "description": "PDFを国語用の右→左、または通常の左→右の2in1に変換してChrome標準PDF Viewerで開きます。",
+  "name": "PDF 2in1印刷",
+  "version": "0.3.0",
+  "description": "PDFの2ページを1枚に配置。右から左・左から右の順序を選んで印刷できます。",
   "minimum_chrome_version": "109",
   "permissions": [
     "activeTab",
     "scripting",
-    "offscreen"
+    "offscreen",
+    "storage"
   ],
   "optional_host_permissions": [
     "https://*/*",
@@ -18,8 +19,12 @@
     "type": "module"
   },
   "action": {
-    "default_title": "国語用 2in1印刷",
-    "default_popup": "popup.html"
+    "default_title": "PDF 2in1印刷",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
   },
   "host_permissions": [
     "https://pos.toshin.com/*",
@@ -36,5 +41,11 @@
       ],
       "run_at": "document_idle"
     }
-  ]
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }

@@ -2,8 +2,8 @@ export function choosePdfUrl(tabUrl, detectedPdf) {
   return detectedPdf?.url || tabUrl;
 }
 
-export function createStagedPdfTransformRequest(fileId, windowId) {
-  return { type: 'TRANSFORM_STAGED_PDF', fileId, windowId };
+export function createStagedPdfTransformRequest(fileId, windowId, direction = 'rtl') {
+  return { type: 'TRANSFORM_STAGED_PDF', fileId, windowId, direction };
 }
 
 export function isDirectPdfTabUrl(value) {

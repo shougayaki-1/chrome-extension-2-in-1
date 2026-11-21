@@ -40,8 +40,8 @@ test('the two Toshin buttons sit together and send distinct page directions', as
     setTimeout() {}
   };
   vm.runInNewContext(source, context, { filename: 'toshin-content.js' });
-  assert.match(wrap.innerHTML, /data-direction="rtl">国語用 2in1/);
-  assert.match(wrap.innerHTML, /data-direction="ltr">通常 2in1/);
+  assert.match(wrap.innerHTML, /data-direction="rtl">右→左 2in1/);
+  assert.match(wrap.innerHTML, /data-direction="ltr">左→右 2in1/);
 
   await handlers.rtl();
   await handlers.ltr();

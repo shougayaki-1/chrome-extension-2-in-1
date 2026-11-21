@@ -60,8 +60,8 @@
     <div class="panel">
       <div class="status" role="status"></div>
       <div class="actions">
-        <button type="button" data-direction="rtl">国語用 2in1</button>
-        <button type="button" data-direction="ltr">通常 2in1</button>
+        <button type="button" data-direction="rtl">右→左 2in1</button>
+        <button type="button" data-direction="ltr">左→右 2in1</button>
       </div>
     </div>
   `;

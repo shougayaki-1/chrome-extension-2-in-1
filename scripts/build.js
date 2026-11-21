@@ -15,6 +15,7 @@ await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
 await cp(path.join(root, 'src'), path.join(out, 'src'), { recursive: true });
 await cp(path.join(root, 'vendor'), path.join(out, 'vendor'), { recursive: true });
+await cp(path.join(root, 'static', 'icons'), path.join(out, 'icons'), { recursive: true });
 await cp(path.join(root, 'static', 'manifest.json'), path.join(out, 'manifest.json'));
 await cp(path.join(root, 'static', 'popup.html'), path.join(out, 'popup.html'));
 await cp(path.join(root, 'static', 'popup.css'), path.join(out, 'popup.css'));

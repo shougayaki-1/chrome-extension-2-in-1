@@ -1,3 +1,4 @@
+import { USAGE_KEY, summarizeUsage } from './usage-report.js';
 import { detectPdfInPage } from './detect-pdf.js';
 import { createConversionControlState } from './conversion-control-state.js';
 import {
@@ -15,6 +16,14 @@ const source = document.querySelector('#source');
 const button = document.querySelector('#open-kokugo');
 const chooseFileButton = document.querySelector('#choose-pdf');
 const fileInput = document.querySelector('#pdf-file');
+const direction = document.querySelector('#direction');
+const previewPages = document.querySelectorAll('.preview div');
+
+direction.addEventListener('change', () => {
+  const rtl = direction.value === 'rtl';
+  previewPages[0].textContent = rtl ? '2' : '1';
+  previewPages[1].textContent = rtl ? '1' : '2';
+});
 
 let activeTab = null;
 let pdfUrl = null;
@@ -57,7 +66,7 @@ async function detectCurrentPdf() {
 
   source.textContent = detected ? shortUrl(pdfUrl) : `${shortUrl(pdfUrl)}（未確認）`;
   controls.setUrlAvailable(true);
-  showStatus('右→左の2in1に変換します。');
+  showStatus('ページの順序を選んで変換できます。');
 }
 
 async function requestPermissionIfNeeded() {
@@ -85,6 +94,7 @@ button.addEventListener('click', async () => {
     const result = await chrome.runtime.sendMessage({
       type: 'TRANSFORM_PDF',
       url: pdfUrl,
+      direction: direction.value,
       windowId: activeTab.windowId
     });
     if (!result?.ok) throw new Error(result?.error || 'PDFの変換に失敗しました。');
@@ -114,7 +124,7 @@ fileInput.addEventListener('change', async () => {
       activeTab = tab;
     }
     fileId = await selectedPdfStore.stage(file);
-    const result = await chrome.runtime.sendMessage(createStagedPdfTransformRequest(fileId, activeTab.windowId));
+    const result = await chrome.runtime.sendMessage(createStagedPdfTransformRequest(fileId, activeTab.windowId, direction.value));
     if (!result?.ok) throw new Error(result?.error || 'PDFの変換に失敗しました。');
     showStatus('新しいタブで開きました。', 'success');
     setTimeout(() => window.close(), 350);
@@ -131,3 +141,16 @@ detectCurrentPdf().catch((error) => {
   showStatus(error?.message || String(error), 'error');
   controls.setUrlAvailable(false);
 });
+
+async function showUsageReport() {
+  const reportElement = document.querySelector('#usage-report');
+  try {
+    const stored = await chrome.storage.local.get(USAGE_KEY);
+    const report = summarizeUsage(stored[USAGE_KEY]);
+    reportElement.textContent = `累計 ${report.total}回（今日 ${report.today}回） / 右→左 ${report.rtl}回・左→右 ${report.ltr}回`;
+  } catch {
+    reportElement.textContent = '利用回数を読み込めませんでした。';
+  }
+}
+
+showUsageReport();

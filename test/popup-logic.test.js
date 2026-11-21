@@ -20,7 +20,7 @@ test('assertFileSchemeAccessAllowed explains how to enable local PDF access', ()
 });
 
 test('the selected-file popup request carries an identifier instead of PDF bytes', () => {
-  const message = createStagedPdfTransformRequest('selected-pdf-42', 42);
-  assert.deepEqual(message, { type: 'TRANSFORM_STAGED_PDF', fileId: 'selected-pdf-42', windowId: 42 });
+  const message = createStagedPdfTransformRequest('selected-pdf-42', 42, 'ltr');
+  assert.deepEqual(message, { type: 'TRANSFORM_STAGED_PDF', fileId: 'selected-pdf-42', windowId: 42, direction: 'ltr' });
   assert.equal(Object.hasOwn(message, 'bytes'), false);
 });

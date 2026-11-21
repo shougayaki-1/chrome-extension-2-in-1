@@ -1,3 +1,4 @@
+import { createUsageRecorder } from './usage-report.js';
 import { validateToshinTransformRequest } from './toshin-message.js';
 import { openResultInSourceWindow, resolveSourceWindowId } from './window-target.js';
 
@@ -31,6 +32,8 @@ async function ensureOffscreenDocument(chromeApi) {
   await creatingOffscreen;
 }
 
+const recordUsage = createUsageRecorder(chrome.storage.local);
+
 async function transformRequest(message, sender, chromeApi) {
   const isStagedFileRequest = message?.type === 'TRANSFORM_STAGED_PDF';
   const sourceWindowId = resolveSourceWindowId(message?.windowId, sender?.tab?.windowId);
@@ -43,6 +46,11 @@ async function transformRequest(message, sender, chromeApi) {
     throw new Error(result?.error || 'PDFの変換に失敗しました。');
   }
   await openResultInSourceWindow(result.url, sourceWindowId, chromeApi);
+  try {
+    await recordUsage(direction);
+  } catch (error) {
+    console.error('利用回数を保存できませんでした。', error);
+  }
   return { ok: true };
 }
 
